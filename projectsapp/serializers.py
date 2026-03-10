@@ -32,7 +32,7 @@ class ReceivedImagesSerializers(serializers.ModelSerializer):
 
 
 class ReceivedSerializers(serializers.ModelSerializer):
-  images = ReceivedImagesSerializers(many = True , read_only= True)
+  images = ReceivedImagesSerializers(many = True , read_only= True, source='received_images')
   upload_images = serializers.ListField(
     child=serializers.ImageField(),
     write_only = True,
@@ -48,18 +48,30 @@ class ReceivedSerializers(serializers.ModelSerializer):
 
     for img in images:
       ReceivedImages.objects.create(received=bill , image=img)
-    
+
     return bill
+
+  def update(self, instance, validated_data):
+    images = validated_data.pop('upload_images', [])
+
+    for attr, value in validated_data.items():
+      setattr(instance, attr, value)
+    instance.save()
+
+    for img in images:
+      ReceivedImages.objects.create(received=instance , image=img)
+
+    return instance
   
 
 class SpendImagesSerializers(serializers.ModelSerializer):
   class Meta:
     model = SpendImages
-    fields = ['id' , 'received' , 'image']    
+    fields = ['id' , 'spend' , 'image']    
 
 
 class SpendSerializers(serializers.ModelSerializer):
-  images = SpendImagesSerializers(many = True , read_only= True)
+  images = SpendImagesSerializers(many = True , read_only= True, source='spend_images')
   upload_images = serializers.ListField(
     child=serializers.ImageField(),
     write_only = True,
@@ -75,6 +87,18 @@ class SpendSerializers(serializers.ModelSerializer):
 
     for img in images:
       SpendImages.objects.create(spend=bill , image=img)
-    
+
     return bill
+
+  def update(self, instance, validated_data):
+    images = validated_data.pop('upload_images', [])
+
+    for attr, value in validated_data.items():
+      setattr(instance, attr, value)
+    instance.save()
+
+    for img in images:
+      SpendImages.objects.create(spend=instance , image=img)
+
+    return instance
 
